@@ -15,10 +15,12 @@ CL_CRUISE=0.341
 CL_CLEAN=1.8
 RHO=1.225 #kg/m**3
 S=55.4 #m**2 wing surface area
+V_CR = 228.335 # taken as a constant
 
 #MTOW MASS SIMPLIFCIATIO AIRPLANE DOES NOT LAND AT MTOW
 V_S0=math.sqrt((2*MTOW)/(RHO*CL_MAX_L*S))
 V_S1=math.sqrt((2*MTOW)/(RHO*CL_CLEAN*S))
+
 
 
 

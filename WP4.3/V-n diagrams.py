@@ -38,6 +38,15 @@ V_D=1.25*V_CR
 M_D=(V_D/M)
 V_A=V_S1*math.sqrt( )
 
+#Checking for VF
+a == 1.6 * VS1
+b == 1.8 * VS1
+c == 1.8 * VS0
+Vf == min(a,b,c)
+
+#Load factor
+N_MAX == 2.1 + (24000)/(MASS+10000)
+
 while H==CRUISE:
 
 

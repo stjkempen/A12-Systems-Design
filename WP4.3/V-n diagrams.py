@@ -40,6 +40,7 @@ def M(H):
 
 
 
+#Masses
 MPW=9302 #kg
 M_1=10820 #kg,  OEM
 M_2=M_1+MPW+(MTOW-M_1-MPW)  #OEM + MPW + MAX FUEL

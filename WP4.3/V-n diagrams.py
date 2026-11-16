@@ -1,8 +1,6 @@
 #PACKAGES
 import math
-import numpy as np
-import matplotlib as mplt
-
+import matplotlib.pyplot as plt
 
 
 

@@ -10,6 +10,12 @@ before identifying centroid, the coordinate system is set to left bottem corner 
 import numpy as np
 from math import sqrt
 
+#--- parameters ---
+
+def chord(y):
+
+
+
 
 def trap_elements(h_frontspar,h_rearspar, pos_frontspar,pos_rearspar,thickness,rear_offset = 0):
     # --- define side contributions ---
@@ -24,6 +30,7 @@ def trap_elements(h_frontspar,h_rearspar, pos_frontspar,pos_rearspar,thickness,r
     
     elements=[frontspar,rearspar,topspar,bottemspar]
     return elements
+
 
 def stringer(area: float, centroid: list):
     stringer={"area": area, "centroid" : centroid}

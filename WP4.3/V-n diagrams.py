@@ -54,6 +54,7 @@ V_S0=math.sqrt((2*MTOW)/(RHO*CL_MAX_L*S))
 V_S1=math.sqrt((2*MTOW)/(RHO*CL_CLEAN*S))
 M_CR=(V_CR/M(H))
 V_A=V_S1*math.sqrt( )
+V_F=min(1.6*V_S1)
 
 while H==CRUISE:
     M_D=M_CR+(0.05*M(H))

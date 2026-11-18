@@ -3,7 +3,12 @@ import numpy as np
 from math import cos, sin, radians
 import matplotlib.pyplot as plt
 from readin_data import readxflr
+from pathlib import Path
+import sys
 
+sys.path.append(str(Path(__file__).resolve().parent.parent))
+
+import parameters
 # ---------------- DUMMY VALUES (replace with real ones) ----------------
 RHO    = 1.225   # air density [kg/m^3]
 V_INF  = 70.0    # airspeed [m/s]
@@ -12,6 +17,7 @@ C_TIP  = 1.00    # tip chord [m]  (approx. from xflr chord column)
 B      = 22.4    # wing span [m]  (approx. from xflr y-span column)
 # -----------------------------------------------------------------------
 
+y = np.linspace(0, parameters.b / 2, 500)
 #calculates dynamic pressure q:
 def q(rho, V):
     return 0.5*rho*V*V
@@ -20,6 +26,22 @@ def q(rho, V):
 #y measured from the root (y=0) to the tip (y=b/2)
 def chord(y, c_root, c_tip, b):
     return c_root - (c_root - c_tip) * (2*y/b)
+
+
+#calculates the density per unit span of the wing
+#the output is a single number that describes the density at a spanwise location
+#assumes that weight distribution is proportional to the chord length
+def density_unit_length(y,S,Wwingtotal,Wfueltotal):
+    constant=(Wwingtotal+Wfueltotal)/S
+    return constant*chord(y, parameters.c_root , parameters.c_tip , parameters.b)
+
+G = 9.81  # gravitational acceleration [m/s^2]
+
+#weight per unit span [N/m] of wing structure + fuel (positive value, acts downward)
+#parameters.wing_weight and parameters.fuel_weight_max are masses in kg, so multiply by g
+def weightDist(y, fuel_fraction=1.0):
+    return G * density_unit_length(y, parameters.wing_surface, parameters.wing_weight,
+                                   fuel_fraction * parameters.fuel_weight_max)
 
 
 #gets correct distributions from the CL at a certain flight condtiion. Based on n-V diagrams.
@@ -58,8 +80,10 @@ def integrateFromTip(y, f_vals):
     return -sp.integrate.cumulative_trapezoid(f_vals[::-1], y[::-1], initial=0)[::-1]
 
 #calculates and plots the loads along the half span for a required CL
-#aerodynamic loads only, no wing/fuel/engine weight yet
-def plotLoads(req_CL=1.0, rho=RHO, V=V_INF, c_root=C_ROOT, c_tip=C_TIP, b=B, n_points=500):
+#includes aerodynamic loads and the wing structure + fuel weight (no engine weight yet)
+#n: load factor applied to the weight, fuel_fraction: fraction of max fuel on board
+def plotLoads(req_CL=1.0, rho=RHO, V=V_INF, c_root=C_ROOT, c_tip=C_TIP, b=B, n_points=500,
+              n=1.0, fuel_fraction=1.0):
     Clf, Clf10, Cdf, Cdf10, Cmf, Cmf10, CL0, CL10 = readxflr()
 
     #distributions at the required CL
@@ -76,7 +100,10 @@ def plotLoads(req_CL=1.0, rho=RHO, V=V_INF, c_root=C_ROOT, c_tip=C_TIP, b=B, n_p
     #evaluate along the half span
     y = np.linspace(0, b/2, n_points)
     L_vals = L_prime(y)
-    N_vals = N_prime(y)
+    N_aero = N_prime(y)
+    #structure + fuel weight, component normal to the wing box (weight acts downward)
+    W_vals = n * cos(radians(alpha)) * weightDist(y, fuel_fraction)
+    N_vals = N_aero - W_vals
     M_vals = M_prime(y)
 
     #internal loads (positive up / nose up), integrated from the free tip to the root
@@ -86,6 +113,7 @@ def plotLoads(req_CL=1.0, rho=RHO, V=V_INF, c_root=C_ROOT, c_tip=C_TIP, b=B, n_p
 
     print(f"Required CL = {req_CL}, alpha = {alpha:.2f} deg, q = {q_inf:.1f} Pa")
     print(f"Half-wing lift  = {np.trapezoid(L_vals, y):.1f} N")
+    print(f"Half-wing weight (struct+fuel) = {np.trapezoid(weightDist(y, fuel_fraction), y):.1f} N")
     print(f"Root shear      = {shear[0]:.1f} N")
     print(f"Root bending    = {bending[0]:.1f} Nm")
     print(f"Root torque     = {torque[0]:.1f} Nm")
@@ -94,7 +122,7 @@ def plotLoads(req_CL=1.0, rho=RHO, V=V_INF, c_root=C_ROOT, c_tip=C_TIP, b=B, n_p
     fig, axes = plt.subplots(2, 3, figsize=(15, 8))
     plots = [
         (L_vals,  "Lift per unit span L' [N/m]",       "Lift distribution"),
-        (N_vals,  "Normal force per unit span [N/m]",  "Normal force distribution"),
+        (N_vals,  "Normal force per unit span [N/m]",  "Net normal force (aero - weight)"),
         (M_vals,  "Moment per unit span M' [Nm/m]",    "Pitching moment distribution"),
         (shear,   "Shear force S [N]",                 "Shear force diagram"),
         (bending, "Bending moment M [Nm]",             "Bending moment diagram"),
@@ -115,7 +143,6 @@ def plotLoads(req_CL=1.0, rho=RHO, V=V_INF, c_root=C_ROOT, c_tip=C_TIP, b=B, n_p
 
 if __name__ == "__main__":
     plotLoads(1.0)
-
 
 
 

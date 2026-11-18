@@ -1,4 +1,8 @@
 import numpy as np
+import matplotlib.pyplot as plt
+
+from parameters import G, E
+
 
 def rk4_fixed(f_grid, s0, y_grid):
     n = len(y_grid) - 1
@@ -66,8 +70,8 @@ def verify():
     length = 15.0
     w = 10000.0
     t0 = 5000.0
-    e = 72e9
-    g = 27e9
+    e = E
+    g = G
     ixx_val = 1e-3
     j_val = 2e-3
 
@@ -88,6 +92,38 @@ def verify():
               % (n_points,
                  abs(result["v_tip"] - v_exact) / v_exact,
                  abs(result["phi_tip"] - phi_exact) / phi_exact))
+
+def deflection(M, T, E=72.4e9, G=28.0e9):
+    res = solve_deflection_rk4(y, m_grid=M, t_grid=T, ixx_grid=Ix, j_grid=J, e=E, g=G)
+
+    v_limit =  0.15*b
+    phi_limit = 10 
+    v_ok = res["v_tip"] <= v_limit
+    phi_ok = res["phi_tip"] <= phi_limit
+
+    print("tip deflection:", round(res["v_tip"], 3), "m, limit:", round(v_limit, 3), "m, OK:", v_ok)
+    print("tip twist:", round(np.degrees(res["phi_tip"]), 2), "deg, limit:", phi_limit, "deg, OK:", phi_ok)
+
+    return res
+
+def plot_deflection(res):
+    plt.figure()
+    plt.plot(res["y"], res["v"])
+    plt.xlabel("y [m]")
+    plt.ylabel("v [m]")
+    plt.title("Bending Deflection")
+    plt.grid(True)
+
+    plt.figure()
+    plt.plot(res["y"], np.degrees(res["phi"]))
+    plt.xlabel("y [m]")
+    plt.ylabel("phi [deg]")
+    plt.title("Twist")
+    plt.grid(True)
+
+    plt.tight_layout()
+    plt.show()
+
 
 
 if __name__ == "__main__":

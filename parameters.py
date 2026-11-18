@@ -12,6 +12,10 @@ c_tip=1.01 #m
 b=22.25 #m
 taper=0.316 
 wing_surface = 46.6844 #m^2
+
+n=1 #loading factor
+
+#weight parameters
 wing_weight = 1503 #kg
 fuel_weight_max = 2646.28 #kg
 

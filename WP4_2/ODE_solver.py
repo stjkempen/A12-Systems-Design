@@ -1,6 +1,9 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
+from parameters import G, E
+
+
 def rk4_fixed(f_grid, s0, y_grid):
     n = len(y_grid) - 1
 
@@ -67,8 +70,8 @@ def verify():
     length = 15.0
     w = 10000.0
     t0 = 5000.0
-    e = 72e9
-    g = 27e9
+    e = E
+    g = G
     ixx_val = 1e-3
     j_val = 2e-3
 

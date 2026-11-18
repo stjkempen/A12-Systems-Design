@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 def rk4_fixed(f_grid, s0, y_grid):
     n = len(y_grid) - 1
@@ -60,7 +61,6 @@ def solve_deflection_rk4(y_grid, m_grid, t_grid, ixx_grid, j_grid, e, g):
         "phi_tip": s_out[-1, 2],
     }
 
-# ---------------- verification ----------------
 def verify():
     # 1) uniform load + constant torque, constant ixx and j (hand calculation)
     # 2) grid convergence: tip values must not change when the grid is refined
@@ -90,8 +90,42 @@ def verify():
                  abs(result["v_tip"] - v_exact) / v_exact,
                  abs(result["phi_tip"] - phi_exact) / phi_exact))
 
+def deflection(M, T, E=72.4e9, G=28.0e9):
+    res = solve_deflection_rk4(y, m_grid=M, t_grid=T, ixx_grid=Ix, j_grid=J, e=E, g=G)
+
+    v_limit =  0.15*b
+    phi_limit = 10 
+    v_ok = res["v_tip"] <= v_limit
+    phi_ok = res["phi_tip"] <= phi_limit
+
+    print("tip deflection:", round(res["v_tip"], 3), "m, limit:", round(v_limit, 3), "m, OK:", v_ok)
+    print("tip twist:", round(np.degrees(res["phi_tip"]), 2), "deg, limit:", phi_limit, "deg, OK:", phi_ok)
+
+    return res
+
+def plot_deflection(res):
+    plt.figure()
+    plt.plot(res["y"], res["v"])
+    plt.xlabel("y [m]")
+    plt.ylabel("v [m]")
+    plt.title("Bending Deflection")
+    plt.grid(True)
+
+    plt.figure()
+    plt.plot(res["y"], np.degrees(res["phi"]))
+    plt.xlabel("y [m]")
+    plt.ylabel("phi [deg]")
+    plt.title("Twist")
+    plt.grid(True)
+
+    plt.tight_layout()
+    plt.show()
+
+
 
 if __name__ == "__main__":
     verify()
+
+
 
 

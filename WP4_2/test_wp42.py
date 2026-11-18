@@ -1,13 +1,9 @@
 # test_wp42.py
-# end-to-end TEST of the wp4.2 rk4 deflection solver with the group's real data:
-#   xflr5 runs (WP4.1/alpha0.txt, alpha10.txt), sc(2)-0612 airfoil, planform from root_interface.py
-#
-# !! everything marked PLACEHOLDER is a stand-in until wp4.1 / wp4.3 deliver the real thing !!
-#   - loads: aerodynamic lift + pitching moment only (no wing weight, fuel or engine yet)
-#   - wing box: spars at 15% and 60% chord, constant thicknesses, no stringers
-#   - normal force taken equal to lift (no cos(alpha) / drag projection yet)
-#
-# put this file in WP4.2/ next to ODE_solver.py and run it from anywhere
+#CLAUDE code that tests the ODE solver using the right parameters and data.
+#ODE solver is easily adaptable to different data types, so this is a good 
+# test to see if the solver works with real data.
+
+#19 points - already interpolated from WP4_1, so no need to interpolate here.
 
 from pathlib import Path
 
@@ -20,8 +16,8 @@ from ODE_solver import solve_deflection_rk4
 
 # ---------------- paths (relative to the repo) ----------------
 repo = Path(__file__).resolve().parent.parent
-file_a0 = repo / "WP4.1" / "alpha0.txt"
-file_a10 = repo / "WP4.1" / "alpha10.txt"
+file_a0 = repo / "WP4_1" / "alpha0.txt"
+file_a10 = repo / "WP4_1" / "alpha10.txt"
 file_airfoil = repo / "NASA SC(2)-0612 AIRFOIL.dat"
 
 # ---------------- aircraft data (from root_interface.py / V-n diagrams.py) ----------------
@@ -43,6 +39,12 @@ rear_spar_xc = 0.60
 t_spar = 0.006         # [m]
 t_skin = 0.004         # [m]
 shear_centre_xc = 0.5 * (front_spar_xc + rear_spar_xc)   # reader: shear centre = centroid, ~mid-box
+
+# ---------------- load source ----------------
+# False: dummy elliptic lift, no files from WP4_1 needed (use this until WP4_1 is done)
+# True:  real xflr5 data from WP4_1/alpha0.txt and alpha10.txt
+use_xflr5 = False
+cm_dummy = -0.086      # section cm about c/4, roughly what xflr5 gives for this wing
 
 # ---------------- PLACEHOLDER load case ----------------
 # cs25.337: n_max = 2.1 + 24000 / (w + 10000), w in lb
@@ -125,20 +127,26 @@ def box_properties(y, z_up, z_lo, n_seg=50):
 
 
 def build_loads(y_grid):
-    # lift and pitching moment per unit span at the required CL, then shear, moment and torque
-    cl0_tot, y0, cl0, cm0 = read_xflr5(file_a0)
-    cl10_tot, y10, cl10, cm10 = read_xflr5(file_a10)
-
+    # lift and pitching moment per unit span, then shear, moment and torque
     q = 0.5 * rho * v_eas ** 2
     cl_req = n_load * mtow * g0 / (q * s_wing)
-    k = (cl_req - cl0_tot) / (cl10_tot - cl0_tot)
-
-    cl_func = sp.interpolate.interp1d(y0, cl0 + k * (cl10 - cl0), kind="cubic", fill_value="extrapolate")
-    cm_func = sp.interpolate.interp1d(y0, cm0 + k * (cm10 - cm0), kind="cubic", fill_value="extrapolate")
-
     c = chord(y_grid)
-    lift = q * c * cl_func(y_grid)                 # [N/m]
-    pitch = q * c ** 2 * cm_func(y_grid)           # [N m/m], about c/4
+
+    if use_xflr5:
+        # real xflr5 data from WP4_1 (only once that work package is ready)
+        cl0_tot, y0, cl0, cm0 = read_xflr5(file_a0)
+        cl10_tot, y10, cl10, cm10 = read_xflr5(file_a10)
+        k = (cl_req - cl0_tot) / (cl10_tot - cl0_tot)
+        cl_func = sp.interpolate.interp1d(y0, cl0 + k * (cl10 - cl0), kind="cubic", fill_value="extrapolate")
+        cm_func = sp.interpolate.interp1d(y0, cm0 + k * (cm10 - cm0), kind="cubic", fill_value="extrapolate")
+        lift = q * c * cl_func(y_grid)             # [N/m]
+        pitch = q * c ** 2 * cm_func(y_grid)       # [N m/m], about c/4
+    else:
+        # DUMMY loads, no files needed: elliptic lift scaled so the half wing carries n*W/2
+        shape = np.sqrt(np.clip(1 - (y_grid / half_span) ** 2, 0, None))
+        shape_area = sp.integrate.trapezoid(shape, y_grid)
+        lift = n_load * mtow * g0 / 2 * shape / shape_area     # [N/m]
+        pitch = q * c ** 2 * cm_dummy                          # [N m/m], constant cm about c/4
 
     # torque about the shear centre: lift acts at c/4, ahead of the shear centre -> nose-up
     arm = (shear_centre_xc - 0.25) * c

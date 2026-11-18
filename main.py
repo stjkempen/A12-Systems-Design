@@ -2,17 +2,16 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from WP4_2.root_interface import trap_elements, stringer,moments_from_elements
+from WP4_2.ODE_solver import solve_deflection_rk4
+from WP4_2.root_interface import trap_elements, skin_stringers,moments_from_elements, chord
+from WP4_2.read_airfoil_thickness import get_airfoil_thickness
 from parameters import *
-y=np.linspace(0,b,100)
-t=1e-3
-
-
+y=np.linspace(0,b/2,201)
+t=thickness
 
 elements=trap_elements(y,pos_frontspar=pos_frontspar, pos_rearspar=pos_rearspar,thickness=t)
-
-
 J,Ix,Iy=moments_from_elements(*elements)
+
 
 plt.plot(y,J)
 plt.plot(y,Ix)

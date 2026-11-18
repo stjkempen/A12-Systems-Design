@@ -2,6 +2,7 @@
 
 pos_frontspar=0.3
 pos_rearspar=0.7
+thickness=1e-2
 
 
 c_root=3.19 #m

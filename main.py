@@ -10,6 +10,11 @@ y=np.linspace(0,b/2,201)
 t=1e-3
 
 elements=trap_elements(y,pos_frontspar=pos_frontspar, pos_rearspar=pos_rearspar,thickness=t)
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> 405d159521a7d53b89177495b769f4104ed6d55e
 J,Ix,Iy=moments_from_elements(*elements)
 
 

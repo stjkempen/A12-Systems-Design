@@ -60,7 +60,6 @@ def solve_deflection_rk4(y_grid, m_grid, t_grid, ixx_grid, j_grid, e, g):
         "phi_tip": s_out[-1, 2],
     }
 
-# ---------------- verification ----------------
 def verify():
     # 1) uniform load + constant torque, constant ixx and j (hand calculation)
     # 2) grid convergence: tip values must not change when the grid is refined
@@ -93,5 +92,7 @@ def verify():
 
 if __name__ == "__main__":
     verify()
+
+
 
 

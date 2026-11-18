@@ -10,7 +10,8 @@ t=1e-3
 
 
 elements=trap_elements(y,pos_frontspar=pos_frontspar, pos_rearspar=pos_rearspar,thickness=t)
-stringer
+
+
 J,Ix,Iy=moments_from_elements(*elements)
 
 plt.plot(y,J)

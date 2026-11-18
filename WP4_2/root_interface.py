@@ -54,7 +54,7 @@ def skin_stringers(y, pos_frontspar, pos_rearspar, n_top,n_bottom, A_str_root, r
 
     
     a = A_str_root*(1+(taper**2-1)*(2*y/b))         # same shape as y
-
+    a=np.clip(a,a_min=100e-6,a_max=None)
     elements = []
     t_top = np.arange(1, n_top + 1) / (n_top + 1)   # interior fractions
     for ti in t_top:

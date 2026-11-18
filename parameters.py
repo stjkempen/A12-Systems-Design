@@ -5,6 +5,9 @@ pos_rearspar=0.7
 
 
 c_root=3.19 #m
+c_tip=1.01 #m
 b=22.25 #m
 taper=0.316 
-
+wing_surface = 46.6844 #m^2
+wing_weight = 1503 #kg
+fuel_weight_max = 2646.28 #kg

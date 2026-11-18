@@ -3,7 +3,12 @@ import numpy as np
 from math import cos, sin, radians
 import matplotlib.pyplot as plt
 from readin_data import readxflr
+from pathlib import Path
+import sys
 
+sys.path.append(str(Path(__file__).resolve().parent.parent))
+
+import parameters
 # ---------------- DUMMY VALUES (replace with real ones) ----------------
 RHO    = 1.225   # air density [kg/m^3]
 V_INF  = 70.0    # airspeed [m/s]
@@ -12,6 +17,7 @@ C_TIP  = 1.00    # tip chord [m]  (approx. from xflr chord column)
 B      = 22.4    # wing span [m]  (approx. from xflr y-span column)
 # -----------------------------------------------------------------------
 
+y = np.linspace(0, parameters.b / 2, 500)
 #calculates dynamic pressure q:
 def q(rho, V):
     return 0.5*rho*V*V
@@ -20,6 +26,18 @@ def q(rho, V):
 #y measured from the root (y=0) to the tip (y=b/2)
 def chord(y, c_root, c_tip, b):
     return c_root - (c_root - c_tip) * (2*y/b)
+
+
+#calculates the density per unit span of the wing
+#the output is a single number that describes the density at a spanwise location
+#assumes that weight distribution is proportional to the chord length
+def density_unit_length(y,S,Wwingtotal,Wfueltotal):
+    constant=(Wwingtotal+Wfueltotal)/S
+    return constant*chord(y, parameters.c_root , parameters.c_tip , parameters.b)
+
+weight_distribution = density_unit_length(y , parameters.wing_surface , parameters.wing_weight , parameters.fuel_weight_max)
+plt.plot(y,weight_distribution)
+plt.show
 
 
 #gets correct distributions from the CL at a certain flight condtiion. Based on n-V diagrams.
@@ -115,7 +133,6 @@ def plotLoads(req_CL=1.0, rho=RHO, V=V_INF, c_root=C_ROOT, c_tip=C_TIP, b=B, n_p
 
 if __name__ == "__main__":
     plotLoads(1.0)
-
 
 
 

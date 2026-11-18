@@ -39,6 +39,31 @@ def trap_elements(y, pos_frontspar, pos_rearspar, thickness, rear_offset=0):
 def stringer(area, centroid):
     return {"area": area, "centroid": np.array(centroid, dtype=float)[:, None]}
 
+def skin_stringers(y, pos_frontspar, pos_rearspar, n_per_side, area, rear_offset=0):
+    """Equally spaced stringers on the top and bottom skins (n_per_side each).
+    `area` is the area of each stringer; the spar positions and rear_offset
+    are the same as in trap_elements (fractions of chord)."""
+    if n_per_side < 1:
+        return []
+
+    c = chord(y)
+    x_f, x_r = pos_frontspar*c, pos_rearspar*c
+    h_f = get_airfoil_thickness(pos_frontspar)*c
+    h_r = get_airfoil_thickness(pos_rearspar)*c
+    off = rear_offset*c
+
+    t = np.arange(1, n_per_side + 1) / (n_per_side + 1)   # interior fractions
+    a = np.full(np.shape(x_f), area, dtype=float)         # same shape as y
+
+    elements = []
+    for ti in t:
+        x = x_f + ti*(x_r - x_f)
+        y_top = h_f + ti*(h_r + off - h_f)
+        y_bot = ti*off
+        elements.append({"area": a.copy(), "centroid": np.stack([x, y_top])})
+        elements.append({"area": a.copy(), "centroid": np.stack([x, y_bot])})
+    return elements
+
 
 def moments_from_elements(*elements):
     total_area = sum(e["area"] for e in elements)

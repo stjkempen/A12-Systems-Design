@@ -9,7 +9,9 @@ from parameters import *
 y=np.linspace(0,b/2,201)
 t=thickness
 
-elements=trap_elements(y,pos_frontspar=pos_frontspar, pos_rearspar=pos_rearspar,thickness=t)
+trap=trap_elements(y,pos_frontspar=pos_frontspar, pos_rearspar=pos_rearspar,thickness=t)
+string=skin_stringers(y,pos_frontspar=pos_frontspar,pos_rearspar=pos_rearspar,n_top=5,n_bottom=4,A_str_root=450e-6)
+elements=trap+string
 J,Ix,Iy=moments_from_elements(*elements)
 
 

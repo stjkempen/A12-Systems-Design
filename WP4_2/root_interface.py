@@ -39,7 +39,7 @@ def trap_elements(y, pos_frontspar, pos_rearspar, thickness, rear_offset=0):
 def stringer(area, centroid):
     return {"area": area, "centroid": np.array(centroid, dtype=float)[:, None]}
 
-def skin_stringers(y, pos_frontspar, pos_rearspar, n_top,n_bottom, area, rear_offset=0):
+def skin_stringers(y, pos_frontspar, pos_rearspar, n_top,n_bottom, A_str_root, rear_offset=0):
     """Equally spaced stringers on the top and bottom skins (n_per_side each).
     `area` is the area of each stringer; the spar positions and rear_offset
     are the same as in trap_elements (fractions of chord)."""
@@ -53,7 +53,7 @@ def skin_stringers(y, pos_frontspar, pos_rearspar, n_top,n_bottom, area, rear_of
     off = rear_offset*c
 
     
-    a = np.full(np.shape(x_f), area, dtype=float)         # same shape as y
+    a = A_str_root*(1+(taper**2-1)*(2*y/b))         # same shape as y
 
     elements = []
     t_top = np.arange(1, n_top + 1) / (n_top + 1)   # interior fractions

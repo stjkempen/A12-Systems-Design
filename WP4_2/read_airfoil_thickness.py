@@ -1,8 +1,8 @@
 import numpy as np
 from scipy.interpolate import interp1d
 
-def get_airfoil_thickness(filepath, target_xc):
-
+def get_airfoil_thickness(target_xc):
+    filepath="NASA SC(2)-0612 AIRFOIL.dat"
     #load data, skip header, handle whitespace
     
     data = np.genfromtxt(filepath, skip_header=1)

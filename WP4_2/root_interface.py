@@ -9,61 +9,44 @@ before identifying centroid, the coordinate system is set to left bottem corner 
 """
 import numpy as np
 
+from parameters import c_root, b, taper
+from WP4_2.read_airfoil_thickness import get_airfoil_thickness
 #--- parameters ---
-c_root=3.19 #m
-b=22.25
-taper=0.316
 
 # --- planform geometry ---
 def chord(y):
     c=c_root-c_root*(1-taper)*y/(b/2)
     return c
 
-def heights(y,x_frontspar,x_rearspar):
-    
-    
-    return ... #h_frontspar, h_rearspar
+
+def trap_elements(y, pos_frontspar, pos_rearspar, thickness, rear_offset=0):
+    c = chord(y)
+    x_f, x_r = pos_frontspar*c, pos_rearspar*c
+    h_f = get_airfoil_thickness(pos_frontspar)*c
+    h_r = get_airfoil_thickness(pos_rearspar)*c
+    off = rear_offset*c
+    dx = x_r - x_f
+
+    frontspar = {"area": h_f*thickness, "centroid": np.stack([x_f, 0.5*h_f])}
+    rearspar  = {"area": h_r*thickness, "centroid": np.stack([x_r, 0.5*h_r + off])}
+    topspar   = {"area": np.sqrt(dx**2 + (h_r + off - h_f)**2)*thickness,
+                 "centroid": np.stack([(x_f + x_r)/2, (h_f + h_r + off)/2])}
+    bottomspar = {"area": np.sqrt(dx**2 + off**2)*thickness,
+                  "centroid": np.stack([(x_f + x_r)/2, off/2])}
+    return [frontspar, rearspar, topspar, bottomspar]
 
 
-
-
-
-
-
-def trap_elements(h_frontspar,h_rearspar, pos_frontspar,pos_rearspar,thickness,rear_offset = 0):
-    # --- define side contributions ---
-    frontspar={"area" : h_frontspar*thickness,"centroid" : np.stack([pos_frontspar,0.5*h_frontspar])}
-    rearspar={"area" : h_rearspar*thickness,"centroid" : np.stack([pos_rearspar,0.5*h_rearspar+rear_offset])}
-
-    topspar={"area":np.sqrt((pos_rearspar-pos_frontspar)**2+((h_frontspar-h_rearspar)/2+rear_offset)**2), 
-             "centroid": np.stack([(pos_rearspar-pos_frontspar)/2,(h_frontspar+h_rearspar+rear_offset)/2])}
-    
-    bottemspar={"area":np.sqrt((pos_rearspar-pos_frontspar)**2+((h_frontspar-h_rearspar)/2-rear_offset)**2), 
-             "centroid": np.stack([(pos_rearspar-pos_frontspar)/2,(rear_offset)/2])}
-    
-    elements=[frontspar,rearspar,topspar,bottemspar]
-    return elements
-
-
-def stringer(area: float, centroid: list):
-    stringer={"area": area, "centroid" : centroid}
-    return stringer
+def stringer(area, centroid):
+    return {"area": area, "centroid": np.array(centroid, dtype=float)[:, None]}
 
 
 def moments_from_elements(*elements):
-    total_area=sum(elem["area"] for elem in elements)
-    centroid=np.array([elem["area"]**2*elem["centroid"] for elem in elements])/total_area**2
-    J, Ix, Iy=0, 0, 0
-    for elem in elements:
-        elem["centroid"]=elem["centroid"]-centroid
-        elem["r2"]=np.sum(elem["centroid"]**2)
-        J+= elem["r2"]*elem["area"]
-        Ix+= elem["centroid"][0]**2*elem["area"]
-        Iy+= elem["centroid"][1]**2*elem["area"]
+    total_area = sum(e["area"] for e in elements)
+    centroid = sum(e["area"]*e["centroid"] for e in elements) / total_area
+    J = Ix = Iy = 0
+    for e in elements:
+        d = e["centroid"] - centroid          # new variable, no mutation
+        Ix += d[1]**2 * e["area"]             # about the horizontal axis
+        Iy += d[0]**2 * e["area"]
+        J  += np.sum(d**2, axis=0) * e["area"]
     return J, Ix, Iy
-
-
-
-
-# -> J(z)
-

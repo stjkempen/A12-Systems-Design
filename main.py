@@ -13,8 +13,6 @@ trap=trap_elements(y,pos_frontspar=pos_frontspar, pos_rearspar=pos_rearspar,thic
 string=skin_stringers(y,pos_frontspar=pos_frontspar,pos_rearspar=pos_rearspar,n_top=5,n_bottom=4,A_str_root=450e-6)
 elements=trap+string
 J,Ix,Iy=moments_from_elements(*elements)
-#something
-print("hello")
 
 plt.plot(y,J)
 plt.plot(y,Ix)

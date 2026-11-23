@@ -16,8 +16,15 @@ C_ROOT = 3.21    # root chord [m] (approx. from xflr chord column)
 C_TIP  = 1.00    # tip chord [m]  (approx. from xflr chord column)
 B      = 22.4    # wing span [m]  (approx. from xflr y-span column)
 # -----------------------------------------------------------------------
+n_of_spanwise_pos = 500
+w_engine = parameters.W_engine
+y = np.linspace(0, parameters.b / 2 , n_of_spanwise_pos)
 
-y = np.linspace(0, parameters.b / 2, 500)
+ystep = y[1] - y[0]
+n=parameters.n  
+
+torque_engine=parameters.Thrust_max*parameters.engine_torsion_moment_arm
+
 #calculates dynamic pressure q:
 def q(rho, V):
     return 0.5*rho*V*V
@@ -39,9 +46,10 @@ G = 9.81  # gravitational acceleration [m/s^2]
 
 #weight per unit span [N/m] of wing structure + fuel (positive value, acts downward)
 #parameters.wing_weight and parameters.fuel_weight_max are masses in kg, so multiply by g
-def weightDist(y,  loading_factor, fuel_fraction=1.0 ):
-    loading_factor * G * density_unit_length(y, parameters.wing_surface, parameters.wing_weight,
+def weightDist(y, fuel_fraction=1.0 ):
+    a = G * density_unit_length(y, parameters.wing_surface, parameters.wing_weight,
                                    fuel_fraction * parameters.fuel_weight_max)
+    return a
 
 
 #gets correct distributions from the CL at a certain flight condtiion. Based on n-V diagrams.
@@ -82,7 +90,7 @@ def integrateFromTip(y, f_vals):
 #calculates and plots the loads along the half span for a required CL
 #includes aerodynamic loads and the wing structure + fuel weight (no engine weight yet)
 #n: load factor applied to the weight, fuel_fraction: fraction of max fuel on board
-def plotLoads(req_CL=1.0, rho=RHO, V=V_INF, c_root=C_ROOT, c_tip=C_TIP, b=B, n_points=500,
+def plotLoads(req_CL=1.0, rho=RHO, V=V_INF, c_root=C_ROOT, c_tip=C_TIP, b=B, n_points = n_of_spanwise_pos,
               n=1.0, fuel_fraction=1.0):
     Clf, Clf10, Cdf, Cdf10, Cmf, Cmf10, CL0, CL10 = readxflr()
 
@@ -106,10 +114,18 @@ def plotLoads(req_CL=1.0, rho=RHO, V=V_INF, c_root=C_ROOT, c_tip=C_TIP, b=B, n_p
     N_vals = N_aero - W_vals
     M_vals = M_prime(y)
 
+    
+    #adding point loads to the force distributions
+    engine_index = parameters.engine_spanwise_pos * n_of_spanwise_pos
+    N_vals[int(engine_index)] -= w_engine * 9.81 * n / ystep
+    M_vals[int(engine_index)] += torque_engine /ystep
+
     #internal loads (positive up / nose up), integrated from the free tip to the root
     shear   = integrateFromTip(y, N_vals)      # S(y) [N]
     bending = integrateFromTip(y, shear)       # M_b(y) [Nm]
     torque  = integrateFromTip(y, M_vals)      # T(y) [Nm] (from aerodynamic moment only)
+
+
 
     print(f"Required CL = {req_CL}, alpha = {alpha:.2f} deg, q = {q_inf:.1f} Pa")
     print(f"Half-wing lift  = {np.trapezoid(L_vals, y):.1f} N")

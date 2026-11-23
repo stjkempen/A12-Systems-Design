@@ -15,6 +15,10 @@ wing_surface = 46.6844 #m^2
 
 n=1 #loading factor
 
+engine_spanwise_pos = 0.35 # 35% of semi wing span
+engine_torsion_moment_arm = 1 #m, correct later, I have no idea just wrote something here
+Thrust_max = 68 000 #N, in take-off, per engine
+
 #weight parameters
 wing_weight = 1503 #kg
 fuel_weight_max = 2646.28 #kg

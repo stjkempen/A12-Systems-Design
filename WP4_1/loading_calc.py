@@ -39,8 +39,8 @@ G = 9.81  # gravitational acceleration [m/s^2]
 
 #weight per unit span [N/m] of wing structure + fuel (positive value, acts downward)
 #parameters.wing_weight and parameters.fuel_weight_max are masses in kg, so multiply by g
-def weightDist(y, fuel_fraction=1.0):
-    G * density_unit_length(y, parameters.wing_surface, parameters.wing_weight,
+def weightDist(y, fuel_fraction=1.0, loading_factor ):
+    loading_factor * G * density_unit_length(y, parameters.wing_surface, parameters.wing_weight,
                                    fuel_fraction * parameters.fuel_weight_max)
 
 
@@ -102,7 +102,7 @@ def plotLoads(req_CL=1.0, rho=RHO, V=V_INF, c_root=C_ROOT, c_tip=C_TIP, b=B, n_p
     L_vals = L_prime(y)
     N_aero = N_prime(y)
     #structure + fuel weight, component normal to the wing box (weight acts downward)
-    W_vals = n * cos(radians(alpha)) * weightDist(y, fuel_fraction)
+    W_vals = n * cos(radians(alpha)) * weightDist(y, fuel_fraction , parameters.n)
     N_vals = N_aero - W_vals
     M_vals = M_prime(y)
 

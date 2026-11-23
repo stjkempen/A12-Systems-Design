@@ -18,7 +18,6 @@ def chord(y):
     c=c_root-c_root*(1-taper)*y/(b/2)
     return c
 
-
 def trap_elements(y, pos_frontspar, pos_rearspar, thickness, rear_offset=0):
     c = chord(y)
     x_f, x_r = pos_frontspar*c, pos_rearspar*c
@@ -26,18 +25,39 @@ def trap_elements(y, pos_frontspar, pos_rearspar, thickness, rear_offset=0):
     h_r = get_airfoil_thickness(pos_rearspar)*c
     off = rear_offset*c
     dx = x_r - x_f
+    t = thickness
 
-    frontspar = {"area": h_f*thickness, "centroid": np.stack([x_f, 0.5*h_f])}
-    rearspar  = {"area": h_r*thickness, "centroid": np.stack([x_r, 0.5*h_r + off])}
-    topspar   = {"area": np.sqrt(dx**2 + (h_r + off - h_f)**2)*thickness,
-                 "centroid": np.stack([(x_f + x_r)/2, (h_f + h_r + off)/2])}
-    bottomspar = {"area": np.sqrt(dx**2 + off**2)*thickness,
-                  "centroid": np.stack([(x_f + x_r)/2, off/2])}
-    return [frontspar, rearspar, topspar, bottomspar]
+    def vertical_plate(h):                      # spars
+        return t*h**3/12, h*t**3/12             # own I_x, I_y
+
+    def inclined_plate(l, theta):               # skins
+        s, co = np.sin(theta), np.cos(theta)
+        return (t*l*(l**2*s**2 + t**2*co**2)/12,
+                t*l*(l**2*co**2 + t**2*s**2)/12)
+
+    l_top = np.sqrt(dx**2 + (h_r + off - h_f)**2)
+    l_bot = np.sqrt(dx**2 + off**2)
+    th_top = np.arctan2(h_r + off - h_f, dx)
+    th_bot = np.arctan2(off, dx)
+
+    def element(area, centroid, own):
+        return {"area": area, "centroid": centroid, "I_x": own[0], "I_y": own[1]}
+
+    return [
+        element(h_f*t, np.stack([x_f, 0.5*h_f]), vertical_plate(h_f)),
+        element(h_r*t, np.stack([x_r, 0.5*h_r + off]), vertical_plate(h_r)),
+        element(l_top*t, np.stack([(x_f + x_r)/2, (h_f + h_r + off)/2]),
+                inclined_plate(l_top, th_top)),
+        element(l_bot*t, np.stack([(x_f + x_r)/2, off/2]),
+                inclined_plate(l_bot, th_bot)),
+    ]
 
 
 def stringer(area, centroid):
-    return {"area": area, "centroid": np.array(centroid, dtype=float)[:, None]}
+    return {"area": area, "centroid": np.array(centroid, dtype=float)[:, None],
+            "I_x": 0, "I_y": 0}
+
+
 
 def skin_stringers(y, pos_frontspar, pos_rearspar, n_top,n_bottom, A_str_root, rear_offset=0):
     """Equally spaced stringers on the top and bottom skins (n_per_side each).
@@ -58,15 +78,15 @@ def skin_stringers(y, pos_frontspar, pos_rearspar, n_top,n_bottom, A_str_root, r
     elements = []
     t_top = np.arange(1, n_top + 1) / (n_top + 1)   # interior fractions
     for ti in t_top:
-        x = x_f + ti*(x_r - x_f)
+        x_top = x_f + ti*(x_r - x_f)
         y_top = h_f + ti*(h_r + off - h_f)
-        elements.append({"area": a.copy(), "centroid": np.stack([x, y_top])})
+        elements.append({"I_x" : 0,"I_y": 0,"area": a.copy(), "centroid": np.stack([x_top, y_top])})
 
     t_bottom = np.arange(1, n_bottom + 1) / (n_bottom + 1)   # interior fractions
     for ti in t_bottom:
         x = x_f + ti*(x_r - x_f)
         y_bot = ti*off
-        elements.append({"area": a.copy(), "centroid": np.stack([x, y_bot])})
+        elements.append({"I_x" : 0,"I_y": 0,"area": a.copy(), "centroid": np.stack([x, y_bot])})
     
     return elements
 
@@ -74,10 +94,27 @@ def skin_stringers(y, pos_frontspar, pos_rearspar, n_top,n_bottom, A_str_root, r
 def moments_from_elements(*elements):
     total_area = sum(e["area"] for e in elements)
     centroid = sum(e["area"]*e["centroid"] for e in elements) / total_area
-    J = Ix = Iy = 0
+    Ix = Iy = 0
     for e in elements:
-        d = e["centroid"] - centroid          # new variable, no mutation
-        Ix += d[1]**2 * e["area"]             # about the horizontal axis
-        Iy += d[0]**2 * e["area"]
-        J  += np.sum(d**2, axis=0) * e["area"]
+        d = e["centroid"] - centroid
+        Ix += d[1]**2 * e["area"] + e["I_x"]    # vertical offset -> bending about horizontal axis
+        Iy += d[0]**2 * e["area"] + e["I_y"]
+    J = Ix + Iy                                 # polar moment of area
     return J, Ix, Iy
+
+def torsion_constant(y, pos_frontspar, pos_rearspar, thickness, rear_offset=0):
+    c = chord(y)
+    x_f, x_r = pos_frontspar*c, pos_rearspar*c
+    h_f = get_airfoil_thickness(pos_frontspar)*c
+    h_r = get_airfoil_thickness(pos_rearspar)*c
+    off = rear_offset*c
+    dx = x_r - x_f
+
+    l_top = np.sqrt(dx**2 + (h_r + off - h_f)**2)
+    l_bot = np.sqrt(dx**2 + off**2)
+
+    # enclosed area of the quadrilateral with corners
+    # (x_f,0), (x_r,off), (x_r,off+h_r), (x_f,h_f)
+    A_m = 0.5*dx*(h_f + h_r)
+
+    return 4*A_m**2 / ((h_f + h_r + l_top + l_bot)/thickness)

@@ -2,9 +2,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from WP4_2.ODE_solver import solve_deflection_rk4
+
 from WP4_2.root_interface import trap_elements, skin_stringers,moments_from_elements, torsion_constant
-from WP4_2.read_airfoil_thickness import get_airfoil_thickness
 from parameters import *
 y=np.linspace(0,b/2,1001)
 t=thickness

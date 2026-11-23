@@ -25,7 +25,7 @@ def trap_elements(y, pos_frontspar, pos_rearspar, thickness, rear_offset=0):
     h_r = get_airfoil_thickness(pos_rearspar)*c
     off = rear_offset*c
     dx = x_r - x_f
-    t = thickness
+    t = thickness*chord(y)/chord(0)
 
     def vertical_plate(h):                      # spars
         return t*h**3/12, h*t**3/12             # own I_x, I_y
@@ -99,8 +99,8 @@ def moments_from_elements(*elements):
         d = e["centroid"] - centroid
         Ix += d[1]**2 * e["area"] + e["I_x"]    # vertical offset -> bending about horizontal axis
         Iy += d[0]**2 * e["area"] + e["I_y"]
-    J = Ix + Iy                                 # polar moment of area
-    return J, Ix, Iy
+    I_p = Ix + Iy                                 # I_p is polar moment of area
+    return I_p, Ix, Iy
 
 def torsion_constant(y, pos_frontspar, pos_rearspar, thickness, rear_offset=0):
     c = chord(y)

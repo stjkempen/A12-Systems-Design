@@ -39,7 +39,7 @@ G = 9.81  # gravitational acceleration [m/s^2]
 
 #weight per unit span [N/m] of wing structure + fuel (positive value, acts downward)
 #parameters.wing_weight and parameters.fuel_weight_max are masses in kg, so multiply by g
-def weightDist(y, fuel_fraction=1.0, loading_factor ):
+def weightDist(y,  loading_factor, fuel_fraction=1.0 ):
     loading_factor * G * density_unit_length(y, parameters.wing_surface, parameters.wing_weight,
                                    fuel_fraction * parameters.fuel_weight_max)
 

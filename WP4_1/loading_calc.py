@@ -58,6 +58,12 @@ def getDistFromCL(req_CL, CL0, CL10, cl0, cl10, cm0, cm10):
     alpha = k*10
     return cl, cm, alpha
 
+#find the required CL from the load factor n
+def getReqCL(mass, n, rho, v_inf, S):
+    CL = (n*2*mass*9.81)/(rho*v_inf*v_inf*S)
+    return CL
+
+
 #function that converts non-dimensional distributions from xlfr to dimensional based on dynamic pressure.
 #returns L'(y) [N/m], D'(y) [N/m] and M'(y) [Nm/m] as functions of y
 def nonDimensionalDist(cl, cd, cm, q_inf, c_root, c_tip, b):
@@ -82,11 +88,12 @@ def integrateFromTip(y, f_vals):
 #calculates and plots the loads along the half span for a required CL
 #includes aerodynamic loads and the wing structure + fuel weight (no engine weight yet)
 #n: load factor applied to the weight, fuel_fraction: fraction of max fuel on board
-def plotLoads(req_CL=1.0, rho=RHO, V=V_INF, c_root=C_ROOT, c_tip=C_TIP, b=B, n_points=500,
-              n=1.0, fuel_fraction=1.0):
+def plotLoads(rho=RHO, V=V_INF, c_root=C_ROOT, c_tip=C_TIP, b=B, n_points=500,
+              n=1.0, fuel_fraction=1.0, aircraft_mass=30000):
     Clf, Clf10, Cdf, Cdf10, Cmf, Cmf10, CL0, CL10 = readxflr()
 
     #distributions at the required CL
+    req_CL= getReqCL(aircraft_mass, n, rho, V, parameters.wing_surface)
     cl, cm, alpha = getDistFromCL(req_CL, CL0, CL10, Clf, Clf10, Cmf, Cmf10)
     k = (req_CL - CL0) / (CL10 - CL0)   #same interpolation factor for cd
     def cd(y):

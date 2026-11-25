@@ -90,7 +90,7 @@ def integrateFromTip(y, f_vals):
 #includes aerodynamic loads and the wing structure + fuel weight (no engine weight yet)
 #n: load factor applied to the weight, fuel_fraction: fraction of max fuel on board
 def plotLoads(rho=RHO, V=V_INF, c_root=c_root, c_tip=c_tip, b=b, n_point=n_of_spanwise_pos,
-              n=1.0, fuel_fraction=1.0, aircraft_mass=parameters.aircraft_mass):
+              n=1.0, fuel_fraction=1.0, aircraft_mass=parameters.MTOW):
     Clf, Clf10, Cdf, Cdf10, Cmf, Cmf10, CL0, CL10 = readxflr()
 
     #distributions at the required CL

@@ -72,13 +72,11 @@ def verify():
     length = 15.0
     w = 10000.0
     t0 = 5000.0
-    e = E
-    g = G
     ixx_val = 1e-3
     j_val = 2e-3
 
-    v_exact = w * length ** 4 / (8 * e * ixx_val)
-    phi_exact = t0 * length / (g * j_val)
+    v_exact = w * length ** 4 / (8 * E * ixx_val)
+    phi_exact = t0 * length / (G * j_val)
 
     for n_points in [11, 21, 41, 81]:
         y = np.linspace(0.0, length, n_points)
@@ -88,7 +86,6 @@ def verify():
             t_grid=np.full_like(y, t0),
             ixx_grid=np.full_like(y, ixx_val),
             j_grid=np.full_like(y, j_val),
-            e=e, g=g,
         )
         print("points = %3d   v_tip error = %.2e   phi_tip error = %.2e"
               % (n_points,

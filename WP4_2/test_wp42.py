@@ -6,16 +6,19 @@
 #19 points - already interpolated from WP4_1, so no need to interpolate here.
 
 from pathlib import Path
+import sys
+
+repo = Path(__file__).resolve().parent.parent
+sys.path.insert(0, str(repo))
 
 import numpy as np
 import scipy as sp
 from scipy import interpolate, integrate
 import matplotlib.pyplot as plt
 
-from ODE_solver import solve_deflection_rk4
+from WP4_2.ODE_solver import solve_deflection_rk4
 
 # ---------------- paths (relative to the repo) ----------------
-repo = Path(__file__).resolve().parent.parent
 file_a0 = repo / "WP4_1" / "alpha0.txt"
 file_a10 = repo / "WP4_1" / "alpha10.txt"
 file_airfoil = repo / "NASA SC(2)-0612 AIRFOIL.dat"
@@ -28,10 +31,6 @@ half_span = b / 2
 s_wing = 55.4          # [m^2]
 mtow = 20331.70245     # [kg]
 g0 = 9.81
-
-# ---------------- material: al2024-t81 ----------------
-e_mod = 72.4e9         # [Pa]
-g_mod = 28.0e9         # [Pa]
 
 # ---------------- PLACEHOLDER wing box ----------------
 front_spar_xc = 0.15
@@ -168,7 +167,7 @@ def run(n_points):
     loads = build_loads(y)
     z_up, z_lo = read_airfoil(file_airfoil)
     props = np.array([box_properties(yi, z_up, z_lo) for yi in y])
-    result = solve_deflection_rk4(y, loads["moment"], loads["torque"], props[:, 0], props[:, 1], e_mod, g_mod)
+    result = solve_deflection_rk4(y, loads["moment"], loads["torque"], props[:, 0], props[:, 1])
     return y, loads, props, result
 
 

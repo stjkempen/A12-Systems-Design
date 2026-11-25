@@ -18,7 +18,7 @@ y = np.linspace(0, parameters.b / 2 , n_of_spanwise_pos)
 ystep = y[1] - y[0]
 n=parameters.n  
 
-torque_engine=parameters.Thrust_max*parameters.engine_torsion_moment_arm
+torque_engine=parameters.Thrust_current*parameters.engine_torsion_moment_arm
 
 #calculates dynamic pressure q:
 def q(rho, V):

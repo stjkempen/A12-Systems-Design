@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 
 from WP4_1.loading_calc import plotLoads
 from WP4_2.root_interface import trap_elements, skin_stringers,moments_from_elements, torsion_constant
+from WP4_2.ODE_solver import deflection, plot_deflection
 from parameters import *
 
 # --- section related to WP4.1 ---
@@ -21,13 +22,14 @@ _,Ix, Iy=moments_from_elements(*elements)
 J_t=torsion_constant(y,pos_frontspar=pos_frontspar,pos_rearspar=pos_rearspar,thickness=thickness)
 
 # - ODE solver -
-
+results=deflection(y, bending,torque,Ix,J_t)
+plot_deflection(results)
 
 
 # --- plotting of results ---
 
 
-plt.plot(y,J_t)
+"""plt.plot(y,J_t)
 plt.plot(y,Ix)
 plt.plot(y,Iy)
 
@@ -35,4 +37,4 @@ plt.show()
 
 #--- clipping of area ---
 plt.plot(y,string[0]["area"])
-plt.show()
+plt.show()"""

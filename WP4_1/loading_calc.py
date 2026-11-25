@@ -2,20 +2,15 @@ import scipy as sp
 import numpy as np
 from math import cos, sin, radians
 import matplotlib.pyplot as plt
-from readin_data import readxflr
+from WP4_1.readin_data import readxflr
 from pathlib import Path
 import sys
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 import parameters
-# ---------------- DUMMY VALUES (replace with real ones) ----------------
-RHO    = 1.225   # air density [kg/m^3]
-V_INF  = 70.0    # airspeed [m/s]
-C_ROOT = 3.21    # root chord [m] (approx. from xflr chord column)
-C_TIP  = 1.00    # tip chord [m]  (approx. from xflr chord column)
-B      = 22.4    # wing span [m]  (approx. from xflr y-span column)
-# -----------------------------------------------------------------------
+from parameters import RHO, V_INF, c_root, c_tip, b, g
+
 n_of_spanwise_pos = 500
 w_engine = parameters.W_engine
 y = np.linspace(0, parameters.b / 2 , n_of_spanwise_pos)
@@ -42,12 +37,11 @@ def density_unit_length(y,S,Wwingtotal,Wfueltotal):
     constant=(Wwingtotal+Wfueltotal)/S
     return constant*chord(y, parameters.c_root , parameters.c_tip , parameters.b)
 
-G = 9.81  # gravitational acceleration [m/s^2]
 
 #weight per unit span [N/m] of wing structure + fuel (positive value, acts downward)
 #parameters.wing_weight and parameters.fuel_weight_max are masses in kg, so multiply by g
-def weightDist(y, fuel_fraction=1.0 ):
-    a = G * density_unit_length(y, parameters.wing_surface, parameters.wing_weight,
+def weightDist(y, fuel_fraction=1.0):
+    a = g * density_unit_length(y, parameters.wing_surface, parameters.wing_weight,
                                    fuel_fraction * parameters.fuel_weight_max)
     return a
 
@@ -90,7 +84,7 @@ def integrateFromTip(y, f_vals):
 #calculates and plots the loads along the half span for a required CL
 #includes aerodynamic loads and the wing structure + fuel weight (no engine weight yet)
 #n: load factor applied to the weight, fuel_fraction: fraction of max fuel on board
-def plotLoads(req_CL=1.0, rho=RHO, V=V_INF, c_root=C_ROOT, c_tip=C_TIP, b=B, n_points = n_of_spanwise_pos,
+def plotLoads(req_CL=1.0, rho=RHO, V=V_INF, c_root=c_root, c_tip=c_tip, b=b, n_points = n_of_spanwise_pos,
               n=1.0, fuel_fraction=1.0):
     Clf, Clf10, Cdf, Cdf10, Cmf, Cmf10, CL0, CL10 = readxflr()
 
@@ -110,7 +104,7 @@ def plotLoads(req_CL=1.0, rho=RHO, V=V_INF, c_root=C_ROOT, c_tip=C_TIP, b=B, n_p
     L_vals = L_prime(y)
     N_aero = N_prime(y)
     #structure + fuel weight, component normal to the wing box (weight acts downward)
-    W_vals = n * cos(radians(alpha)) * weightDist(y, fuel_fraction , parameters.n)
+    W_vals = n * cos(radians(alpha)) * weightDist(y, fuel_fraction)
     N_vals = N_aero - W_vals
     M_vals = M_prime(y)
 

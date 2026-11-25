@@ -26,3 +26,10 @@ W_engine = 830 #kg
 #--- material properties AL2024-T81 ---
 E=72.4e9 #pa
 G=28e9 #pa
+
+# ---------------- DUMMY VALUES (replace with real ones) ----------------
+RHO    = 1.225   # air density [kg/m^3]
+V_INF  = 70.0    # airspeed [m/s]
+
+g = 9.81  # gravitational acceleration [m/s^2]
+# -----------------------------------------------------------------------

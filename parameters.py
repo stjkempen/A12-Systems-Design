@@ -53,7 +53,7 @@ T_SURF=288.15 #K
 T_CR=218.81 #K
 KG_TO_LB = 2.20462
 # Convert MTOW (kg) to lbf, then clamp between 2.5 and 3.8 per CS 25.337(b)
-n_raw = 2.1 + (24000 / ((MTOW * KG_TO_LBF) + 10000))
+n_raw = 2.1 + (24000 / ((MTOW * KG_TO_LB) + 10000))
 N_MAX = round(min(max(n_raw, 2.5), 3.8), 1)
 N_MAX_FLAPS=2
 M_C=0.77    #CRUISE MACH

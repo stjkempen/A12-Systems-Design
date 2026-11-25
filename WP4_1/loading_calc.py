@@ -2,20 +2,15 @@ import scipy as sp
 import numpy as np
 from math import cos, sin, radians
 import matplotlib.pyplot as plt
-from readin_data import readxflr
+from WP4_1.readin_data import readxflr
 from pathlib import Path
 import sys
 
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 import parameters
-# ---------------- DUMMY VALUES (replace with real ones) ----------------
-RHO    = 1.225   # air density [kg/m^3]
-V_INF  = 70.0    # airspeed [m/s]
-C_ROOT = 3.21    # root chord [m] (approx. from xflr chord column)
-C_TIP  = 1.00    # tip chord [m]  (approx. from xflr chord column)
-B      = 22.4    # wing span [m]  (approx. from xflr y-span column)
-# -----------------------------------------------------------------------
+from parameters import RHO, V_INF, c_root, c_tip, b, g
+
 n_of_spanwise_pos = 500
 w_engine = parameters.W_engine
 y = np.linspace(0, parameters.b / 2 , n_of_spanwise_pos)
@@ -42,12 +37,11 @@ def density_unit_length(y,S,Wwingtotal,Wfueltotal):
     constant=(Wwingtotal+Wfueltotal)/S
     return constant*chord(y, parameters.c_root , parameters.c_tip , parameters.b)
 
-G = 9.81  # gravitational acceleration [m/s^2]
 
 #weight per unit span [N/m] of wing structure + fuel (positive value, acts downward)
 #parameters.wing_weight and parameters.fuel_weight_max are masses in kg, so multiply by g
-def weightDist(y, fuel_fraction=1.0 ):
-    a = G * density_unit_length(y, parameters.wing_surface, parameters.wing_weight,
+def weightDist(y, fuel_fraction=1.0):
+    a = g * density_unit_length(y, parameters.wing_surface, parameters.wing_weight,
                                    fuel_fraction * parameters.fuel_weight_max)
     return a
 
@@ -65,6 +59,12 @@ def getDistFromCL(req_CL, CL0, CL10, cl0, cl10, cm0, cm10):
         return cm0(y) + k*(cm10(y) - cm0(y))
     alpha = k*10
     return cl, cm, alpha
+
+#find the required CL from the load factor n
+def getReqCL(mass, n, rho, v_inf, S):
+    CL = (n*2*mass*9.81)/(rho*v_inf*v_inf*S)
+    return CL
+
 
 #function that converts non-dimensional distributions from xlfr to dimensional based on dynamic pressure.
 #returns L'(y) [N/m], D'(y) [N/m] and M'(y) [Nm/m] as functions of y
@@ -95,6 +95,7 @@ def plotLoads(req_CL=1.0, rho=RHO, V=V_INF, c_root=C_ROOT, c_tip=C_TIP, b=B, n_p
     Clf, Clf10, Cdf, Cdf10, Cmf, Cmf10, CL0, CL10 = readxflr()
 
     #distributions at the required CL
+    req_CL= getReqCL(aircraft_mass, n, rho, V, parameters.wing_surface)
     cl, cm, alpha = getDistFromCL(req_CL, CL0, CL10, Clf, Clf10, Cmf, Cmf10)
     k = (req_CL - CL0) / (CL10 - CL0)   #same interpolation factor for cd
     def cd(y):
@@ -106,7 +107,7 @@ def plotLoads(req_CL=1.0, rho=RHO, V=V_INF, c_root=C_ROOT, c_tip=C_TIP, b=B, n_p
     N_prime = convertToNormalForce(alpha, L_prime, D_prime)
 
     #evaluate along the half span
-    y = np.linspace(0, b/2, n_points)
+    y = np.linspace(0, b/2, n_point)
     L_vals = L_prime(y)
     N_aero = N_prime(y)
     #structure + fuel weight, component normal to the wing box (weight acts downward)

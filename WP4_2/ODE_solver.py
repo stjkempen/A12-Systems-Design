@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
-from parameters import G, E
+from parameters import G, E, b
 
 
 def rk4_fixed(f_grid, s0, y_grid):
@@ -30,7 +30,7 @@ def rk4_fixed(f_grid, s0, y_grid):
     return np.array(y_out), np.array(s_out)
 
 
-def solve_deflection_rk4(y_grid, m_grid, t_grid, ixx_grid, j_grid, e, g):
+def solve_deflection_rk4(y_grid, m_grid, t_grid, ixx_grid, j_grid):
     # inputs: all arrays on the same uniform grid from root (y = 0) to tip (y = b/2)
     #   y_grid    spanwise stations [m], odd number of points
     #   m_grid    bending moment [N m]
@@ -39,6 +39,8 @@ def solve_deflection_rk4(y_grid, m_grid, t_grid, ixx_grid, j_grid, e, g):
     #   j_grid    torsional constant [m^4]
     #   e, g      young's and shear modulus [Pa]
     # returns dict with arrays on the step points + tip values
+    e=E
+    g=G
 
     y_grid = np.asarray(y_grid, dtype=float)
     dy = np.diff(y_grid)
@@ -93,8 +95,8 @@ def verify():
                  abs(result["v_tip"] - v_exact) / v_exact,
                  abs(result["phi_tip"] - phi_exact) / phi_exact))
 
-def deflection(M, T, E=72.4e9, G=28.0e9):
-    res = solve_deflection_rk4(y, m_grid=M, t_grid=T, ixx_grid=Ix, j_grid=J, e=E, g=G)
+def deflection(y,M, T,Ix,J):
+    res = solve_deflection_rk4(y_grid=y, m_grid=M, t_grid=T, ixx_grid=Ix, j_grid=J)
 
     v_limit =  0.15*b
     phi_limit = 10 

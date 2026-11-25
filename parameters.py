@@ -34,3 +34,5 @@ V_INF  = 70.0    # airspeed [m/s]
 
 g = 9.81  # gravitational acceleration [m/s^2]
 # -----------------------------------------------------------------------
+# accuracy param:
+n_of_spanwise_pos = 5001

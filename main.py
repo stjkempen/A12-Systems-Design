@@ -9,7 +9,6 @@ from parameters import *
 # --- section related to WP4.1 ---
 y, shear, bending, torque = plotLoads()
 
-print(y)
 # --- section related to WP4.2 ---
 
 # - defening the geometry of the wing cross-section -

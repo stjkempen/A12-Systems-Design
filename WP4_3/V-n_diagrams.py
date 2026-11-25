@@ -80,7 +80,7 @@ for i, H in enumerate(altitudes):
 
 
                 # ---------- V-n diagram ----------
-        k = 0.5*RHO(0)*S/(mass*gravity)                 
+        k = 0.5*rho(0)*wing_surface/(mass*gravity)                 
         V_neg = math.sqrt(abs(N_NEG)/(k*abs(CL_MAX_NEG)))
         V_Af = V_S0*math.sqrt(N_MAX_FLAPS)
 

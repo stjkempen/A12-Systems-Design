@@ -9,7 +9,7 @@ import sys
 sys.path.append(str(Path(__file__).resolve().parent.parent))
 
 import parameters
-from parameters import RHO, V_INF, c_root, c_tip, b, g, n_of_spanwise_pos
+from parameters import RHO, V_INF, c_root, c_tip, b, gravity, n_of_spanwise_pos
 
 w_engine = parameters.W_engine
 y = np.linspace(0, parameters.b / 2 , n_of_spanwise_pos)
@@ -40,7 +40,7 @@ def density_unit_length(y,S,Wwingtotal,Wfueltotal):
 #weight per unit span [N/m] of wing structure + fuel (positive value, acts downward)
 #parameters.wing_weight and parameters.fuel_weight_max are masses in kg, so multiply by g
 def weightDist(y, fuel_fraction):
-    a = g * density_unit_length(y, parameters.wing_surface, parameters.wing_weight,
+    a = gravity * density_unit_length(y, parameters.wing_surface, parameters.wing_weight,
                                    fuel_fraction * parameters.fuel_weight_max)
     return a
 
@@ -61,7 +61,7 @@ def getDistFromCL(req_CL, CL0, CL10, cl0, cl10, cm0, cm10):
 
 #find the required CL from the load factor n
 def getReqCL(mass, n, rho, v_inf, S):
-    CL = (n*2*mass*g)/(rho*v_inf*v_inf*S)
+    CL = (n*2*mass*gravity)/(rho*v_inf*v_inf*S)
     return CL
 
 

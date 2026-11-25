@@ -23,11 +23,12 @@ Thrust_max = 68000 #N, in take-off, per engine
 wing_weight = 1503 #kg
 fuel_weight_max = 2646.28 #kg
 W_engine = 830 #kg
+aircraft_mass = 20733 #kg
 #--- material properties AL2024-T81 ---
 E=72.4e9 #pa
 G=28e9 #pa
 
-# ---------------- DUMMY VALUES (replace with real ones) ----------------
+#atmosphere parameters
 RHO    = 1.225   # air density [kg/m^3]
 V_INF  = 70.0    # airspeed [m/s]
 

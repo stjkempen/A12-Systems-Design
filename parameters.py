@@ -18,7 +18,7 @@ n = 1.0 #loading factor
 engine_spanwise_pos = 0.35 # 35% of semi wing span
 engine_torsion_moment_arm = 1 #m, correct later, I have no idea just wrote something here
 Thrust_max = 68000 #N, in take-off, per engine
-
+Thrust_current = 68000 #N change corresponding to flight conditions you want to plot the internal loads to
 #weight parameters
 wing_weight = 1503 #kg
 fuel_weight_max = 2646.28 #kg

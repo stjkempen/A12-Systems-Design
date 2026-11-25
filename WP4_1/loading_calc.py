@@ -23,7 +23,7 @@ y = np.linspace(0, parameters.b / 2 , n_of_spanwise_pos)
 ystep = y[1] - y[0]
 n=parameters.n  
 
-torque_engine=parameters.Thrust_max*parameters.engine_torsion_moment_arm
+torque_engine=parameters.Thrust_current*parameters.engine_torsion_moment_arm
 
 #calculates dynamic pressure q:
 def q(rho, V):
@@ -91,7 +91,7 @@ def integrateFromTip(y, f_vals):
 #includes aerodynamic loads and the wing structure + fuel weight (no engine weight yet)
 #n: load factor applied to the weight, fuel_fraction: fraction of max fuel on board
 def plotLoads(req_CL=1.0, rho=RHO, V=V_INF, c_root=C_ROOT, c_tip=C_TIP, b=B, n_points = n_of_spanwise_pos,
-              n=1.0, fuel_fraction=1.0):
+              n=n, fuel_fraction=1.0):
     Clf, Clf10, Cdf, Cdf10, Cmf, Cmf10, CL0, CL10 = readxflr()
 
     #distributions at the required CL
@@ -110,7 +110,7 @@ def plotLoads(req_CL=1.0, rho=RHO, V=V_INF, c_root=C_ROOT, c_tip=C_TIP, b=B, n_p
     L_vals = L_prime(y)
     N_aero = N_prime(y)
     #structure + fuel weight, component normal to the wing box (weight acts downward)
-    W_vals = n * cos(radians(alpha)) * weightDist(y, fuel_fraction , parameters.n)
+    W_vals = n * cos(radians(alpha)) * weightDist(y, fuel_fraction)
     N_vals = N_aero - W_vals
     M_vals = M_prime(y)
 

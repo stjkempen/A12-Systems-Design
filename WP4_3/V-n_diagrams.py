@@ -22,8 +22,7 @@ def rho(H):
 SIGMA=rho(altitudes[1])/rho(altitudes[0]) #-------conversion to EAS
 
 
-
-def M(H):
+def a(H):
     GAMMA_AIR=1.4
     R=287
     T_SURF=288.15 #K
@@ -35,12 +34,12 @@ def M(H):
         M=math.sqrt(GAMMA_AIR*R*T_CR)
         return M
 
-V_CR = 0.77*M(H) # taken as a constant 
+V_CR = 0.77*a(H) # taken as a constant 
 
 
 #Masses
-MPW=9302 #kg,     MAXIMUM PAYLOAD 
-MASS_1=10820 #kg,  OEM
+MPW=9320 #kg,     MAXIMUM PAYLOAD 
+MASS_1=10357 #kg,  OEM
 MASS_2=MASS_1+MPW+(MTOW-MASS_1-MPW)  #OEM + MPW + MAX FUEL
 MASS_3=MASS_1+MPW  #OEM + MPW
 
@@ -64,12 +63,12 @@ for i, H in enumerate(altitudes):
     """mass-independent velocities"""
 
     if H==0:
-        V_CR=round(0.77*M(H)*math.sqrt(SIGMA),2)
+        V_CR=round(0.77*a(H),2)
         V_D=round(1.25*V_CR,2)
     else:
-        V_CR=round(0.77*M(H)*math.sqrt(SIGMA),2)
+        V_CR=round(0.77*a(H)*math.sqrt(SIGMA),2)
         M_D=M_C+0.05
-        V_D=round(M(H)*M_D*math.sqrt(SIGMA),2)
+        V_D=round(a(H)*M_D*math.sqrt(SIGMA),2)
 
     """Mass-dependent velocities"""
     

@@ -1,6 +1,4 @@
 """"python file with main calculations"""
-import numpy as np
-import matplotlib.pyplot as plt
 
 from WP4_1.loading_calc import plotLoads
 from WP4_2.root_interface import trap_elements, skin_stringers,moments_from_elements, torsion_constant

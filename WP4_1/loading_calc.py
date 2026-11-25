@@ -1,21 +1,21 @@
-import scipy as sp
 import numpy as np
 from math import cos, sin, radians
 import matplotlib.pyplot as plt
-from WP4_1.readin_data import readxflr
 from pathlib import Path
 import sys
+from scipy.integrate import cumulative_trapezoid
 
-sys.path.append(str(Path(__file__).resolve().parent.parent))
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import parameters
 from parameters import RHO, V_INF, c_root, c_tip, b, gravity, n_of_spanwise_pos
 
-w_engine = parameters.W_engine
-y = np.linspace(0, parameters.b / 2 , n_of_spanwise_pos)
+try:
+    from .readin_data import readxflr
+except ImportError:
+    from readin_data import readxflr
 
-ystep = y[1] - y[0]
-n=parameters.n  
+w_engine = parameters.W_engine
 
 torque_engine=parameters.Thrust_current*parameters.engine_torsion_moment_arm
 
@@ -32,16 +32,21 @@ def chord(y, c_root, c_tip, b):
 #calculates the density per unit span of the wing
 #the output is a single number that describes the density at a spanwise location
 #assumes that weight distribution is proportional to the chord length
-def density_unit_length(y,S,Wwingtotal,Wfueltotal):
+def density_unit_length(y, S, Wwingtotal, Wfueltotal,
+                        c_root=c_root, c_tip=c_tip, b=b):
     constant=(Wwingtotal+Wfueltotal)/S
-    return constant*chord(y, parameters.c_root , parameters.c_tip , parameters.b)
+    return constant*chord(y, c_root, c_tip, b)
 
 
 #weight per unit span [N/m] of wing structure + fuel (positive value, acts downward)
 #parameters.wing_weight and parameters.fuel_weight_max are masses in kg, so multiply by g
-def weightDist(y, fuel_fraction):
-    a = gravity * density_unit_length(y, parameters.wing_surface, parameters.wing_weight,
-                                   fuel_fraction * parameters.fuel_weight_max)
+def weightDist(y, fuel_fraction, c_root=c_root, c_tip=c_tip, b=b,
+               wing_surface=parameters.wing_surface):
+    a = gravity * density_unit_length(
+        y, wing_surface, parameters.wing_weight,
+        fuel_fraction * parameters.fuel_weight_max,
+        c_root, c_tip, b
+    )
     return a
 
 
@@ -84,13 +89,25 @@ def convertToNormalForce(alpha, L_prime, D_prime):
 
 #integrates a distribution from the tip inwards: F(y) = integral from y to b/2 of f(s) ds
 def integrateFromTip(y, f_vals):
-    return -sp.integrate.cumulative_trapezoid(f_vals[::-1], y[::-1], initial=0)[::-1]
+    y = np.asarray(y)
+    f_vals = np.asarray(f_vals)
+    if y.ndim != 1 or f_vals.ndim != 1 or y.size != f_vals.size:
+        raise ValueError("y and f_vals must be one-dimensional arrays of equal length")
+    if y.size < 2:
+        raise ValueError("At least two spanwise positions are required")
+    return -cumulative_trapezoid(f_vals[::-1], y[::-1], initial=0)[::-1]
 
 #calculates and plots the loads along the half span for a required CL
 #includes aerodynamic loads and the wing structure + fuel weight (no engine weight yet)
 #n: load factor applied to the weight, fuel_fraction: fraction of max fuel on board
 def plotLoads(rho=RHO, V=V_INF, c_root=c_root, c_tip=c_tip, b=b, n_point=n_of_spanwise_pos,
-              n=1.0, fuel_fraction=1.0, aircraft_mass=parameters.MTOW):
+              n=parameters.n, fuel_fraction=1.0, aircraft_mass=parameters.MTOW,
+              show_plot=True):
+    if n_point < 2:
+        raise ValueError("n_point must be at least 2")
+    if fuel_fraction < 0:
+        raise ValueError("fuel_fraction cannot be negative")
+
     Clf, Clf10, Cdf, Cdf10, Cmf, Cmf10, CL0, CL10 = readxflr()
 
     #distributions at the required CL
@@ -107,18 +124,22 @@ def plotLoads(rho=RHO, V=V_INF, c_root=c_root, c_tip=c_tip, b=b, n_point=n_of_sp
 
     #evaluate along the half span
     y = np.linspace(0, b/2, n_point)
+    ystep = y[1] - y[0]
     L_vals = L_prime(y)
     N_aero = N_prime(y)
     #structure + fuel weight, component normal to the wing box (weight acts downward)
-    W_vals = n * cos(radians(alpha)) * weightDist(y, fuel_fraction)
+    W_vals = n * cos(radians(alpha)) * weightDist(
+        y, fuel_fraction, c_root, c_tip, b, parameters.wing_surface
+    )
     N_vals = N_aero - W_vals
     M_vals = M_prime(y)
 
     
     #adding point loads to the force distributions
-    engine_index = parameters.engine_spanwise_pos * n_of_spanwise_pos
-    N_vals[int(engine_index)] -= w_engine * 9.81 * n / ystep
-    M_vals[int(engine_index)] += torque_engine /ystep
+    engine_index = int(round(parameters.engine_spanwise_pos * (n_point - 1)))
+    engine_index = min(max(engine_index, 0), n_point - 1)
+    N_vals[engine_index] -= w_engine * gravity * n / ystep
+    M_vals[engine_index] += torque_engine / ystep
 
     #internal loads (positive up / nose up), integrated from the free tip to the root
     shear   = integrateFromTip(y, N_vals)      # S(y) [N]
@@ -129,7 +150,9 @@ def plotLoads(rho=RHO, V=V_INF, c_root=c_root, c_tip=c_tip, b=b, n_point=n_of_sp
 
     print(f"Required CL = {req_CL}, alpha = {alpha:.2f} deg, q = {q_inf:.1f} Pa")
     print(f"Half-wing lift  = {np.trapezoid(L_vals, y):.1f} N")
-    print(f"Half-wing weight (struct+fuel) = {np.trapezoid(weightDist(y, fuel_fraction), y):.1f} N")
+    W_total_vals = weightDist(y, fuel_fraction, c_root, c_tip, b,
+                              parameters.wing_surface)
+    print(f"Half-wing weight (struct+fuel) = {np.trapezoid(W_total_vals, y):.1f} N")
     print(f"Root shear      = {shear[0]:.1f} N")
     print(f"Root bending    = {bending[0]:.1f} Nm")
     print(f"Root torque     = {torque[0]:.1f} Nm")
@@ -152,13 +175,16 @@ def plotLoads(rho=RHO, V=V_INF, c_root=c_root, c_tip=c_tip, b=b, n_point=n_of_sp
         ax.grid(True)
     fig.suptitle(f"Wing loads at CL = {req_CL} (alpha = {alpha:.2f} deg, V = {V} m/s)")
     plt.tight_layout()
-    plt.show()
+    if show_plot:
+        plt.show()
+    else:
+        plt.close(fig)
 
     return y, shear, bending, torque
 
 
 if __name__ == "__main__":
-    plotLoads(1.0)
+    plotLoads(show_plot=True)
 
 
 

@@ -33,7 +33,7 @@ RHO    = 1.225   # air density [kg/m^3]
 GAMMA_AIR=1.4 #specific heat air air
 R=287 #unviersal gas constnat
 V_INF  = 70.0    # airspeed [m/s]
-g = 9.81  # gravitational acceleration [m/s^2]
+gravity = 9.81  # gravitational acceleration [m/s^2]
 
 # --- V-n param ---
 S_F=1.5  #Safety factor of 1.5 as per CS regulations
@@ -42,7 +42,6 @@ CL_MAX_L=2.7
 CL_CR=0.341
 CL_CLEAN=1.8
 
-S=55.4 #m**2 wing surface area
 altitudes=[0,10668]
 
 """HEIGHT SELECTION"""

@@ -8,7 +8,11 @@ before identifying centroid, the coordinate system is set to left bottem corner 
 
 """
 import numpy as np
+import sys
+from pathlib import Path
 
+
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 from parameters import c_root, b, taper
 from WP4_2.read_airfoil_thickness import get_airfoil_thickness
 #--- parameters ---
